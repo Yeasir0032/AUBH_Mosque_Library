@@ -1,18 +1,20 @@
 "use client";
+interface Book {
+  id: string;
+  title: string;
+  author: string;
+  available: boolean;
+}
 interface props {
-  book: {
-    id: number;
-    title: string;
-    author: string;
-    available: boolean;
-  };
+  book: Book;
+  handleBorrow: (book: Book) => void;
 }
 
-const BookCard1 = ({ book }: props) => {
+const BookCard1 = ({ book, handleBorrow }: props) => {
   return (
     <div
       key={book.id}
-      className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-3"
+      className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-3 flex flex-col justify-between"
     >
       <h2 className="text-xl font-semibold text-gray-800 mb-2">{book.title}</h2>
       <p className="text-gray-600 mb-2">{book.author}</p>
@@ -23,9 +25,9 @@ const BookCard1 = ({ book }: props) => {
           Code - {book.id}
         </span>
         <button
-          // onClick={() => handleBorrow(book.id)}
+          onClick={() => handleBorrow(book)}
           disabled={!book.available}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 
+          className={`px-4 py-2 rounded-md cursor-pointer text-sm font-medium transition-colors duration-200 
                     ${
                       book.available
                         ? "bg-blue-600 text-white hover:bg-blue-700"

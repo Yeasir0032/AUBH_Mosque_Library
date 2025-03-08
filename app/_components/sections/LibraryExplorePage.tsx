@@ -2,12 +2,18 @@
 import { useState, useEffect } from "react";
 import BookCard1 from "./book-card1";
 import { createClient } from "@/utils/supabase/client";
-
+import BorrowModal from "../modals/BorrowModal";
+interface Book {
+  id: string;
+  title: string;
+  author: string;
+}
 const LibraryExplorePage = () => {
   const [books, setBooks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
+  const [borrowModal, setBorrowModal] = useState<Book | null>(null);
   const booksPerPage = 10;
 
   const fetchBooks = async () => {
@@ -37,12 +43,21 @@ const LibraryExplorePage = () => {
   const handleLoadMore = () => {
     setPage((prevPage) => prevPage + 1);
   };
+  const handleBorrow = (book: Book) => {
+    setBorrowModal(book);
+  };
 
   if (error) return <div>Error: {error}</div>;
   if (loading && books.length === 0) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 md:py-8 px-4">
+      <div className="absolute flex items-center justify-center">
+        <BorrowModal
+          closeModal={() => setBorrowModal(null)}
+          book={borrowModal}
+        />
+      </div>
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-800 mb-4 text-center">
           AUBH Mosque Library
@@ -57,7 +72,7 @@ const LibraryExplorePage = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {books.map((book) => (
-            <BookCard1 book={book} key={book.id} />
+            <BookCard1 book={book} key={book.id} handleBorrow={handleBorrow} />
           ))}
         </div>
 
