@@ -1,21 +1,17 @@
 "use client";
 import { createClient } from "@/utils/supabase/client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const LoginPage = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
-
-  // useEffect(() => {
-  //   const data = localStorage.getItem("user-token");
-  //   if (data) {
-  //     window.location.href = "/dashboard";
-  //   }
-  // }, []);
+  const router = useRouter();
 
   const handlePhoneNumberSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Add phone number validation
+    //Phone number validation
     const phoneRegex = /^[1-9]\d{9}$/;
 
     if (!phoneRegex.test(phoneNumber)) {
@@ -29,8 +25,8 @@ const LoginPage = () => {
       .eq("mobile", phoneNumber);
     if (error) setError(error.message);
     if (data?.length) {
-      setError(JSON.stringify(data[0]));
       localStorage.setItem("user-token", JSON.stringify(data[0]));
+      router.push("/");
     } else {
       setError("No data found for this mobile number");
     }
@@ -78,6 +74,11 @@ const LoginPage = () => {
             </button>
           </div>
         </form>
+        <div className="text-center">
+          <Link className="text-sm text-gray-600" href="/signup">
+            Create an account
+          </Link>
+        </div>
       </div>
     </div>
   );

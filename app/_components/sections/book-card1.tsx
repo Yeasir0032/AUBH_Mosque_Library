@@ -14,10 +14,14 @@ const BookCard1 = ({ book, handleBorrow }: props) => {
   return (
     <div
       key={book.id}
-      className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-3 flex flex-col justify-between"
+      className="bg-white dark:bg-zinc-800 rounded-xl shadow-lg shadow-green-600/20 hover:shadow-xl transition-shadow duration-300 p-3 flex flex-col justify-between"
     >
-      <h2 className="text-xl font-semibold text-gray-800 mb-2">{book.title}</h2>
-      <p className="text-gray-600 mb-2">{book.author}</p>
+      <h2 className="text-xl font-semibold text-gray-800 dark:text-zinc-100 mb-2 font-serif">
+        {book.title}
+      </h2>
+      <p className="text-gray-600 dark:text-zinc-400 mb-2 font-serif">
+        {book.author}
+      </p>
       <div className="flex items-center justify-between mt-4">
         <span
           className={`px-2 py-1 rounded-full text-sm bg-green-200 text-green-800`}

@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import BookCard1 from "./book-card1";
 import { createClient } from "@/utils/supabase/client";
 import BorrowModal from "../modals/BorrowModal";
+import HeroSection from "./Hero";
+import LoadingSection from "../pages/loading";
 interface Book {
   id: string;
   title: string;
@@ -12,6 +14,7 @@ const LibraryExplorePage = () => {
   const [books, setBooks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
   const [page, setPage] = useState(0);
   const [borrowModal, setBorrowModal] = useState<Book | null>(null);
   const booksPerPage = 10;
@@ -22,6 +25,7 @@ const LibraryExplorePage = () => {
       const { data, error } = await supabase
         .from("Books")
         .select("*")
+        .order("id", { ascending: true })
         .range(page * booksPerPage, (page + 1) * booksPerPage - 1);
 
       if (error) throw error;
@@ -48,26 +52,33 @@ const LibraryExplorePage = () => {
   };
 
   if (error) return <div>Error: {error}</div>;
-  if (loading && books.length === 0) return <div>Loading...</div>;
+  if (loading && books.length === 0) return <LoadingSection />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 md:py-8 px-4">
+    <div className="mt-13 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-gray-900 dark:to-black py-4 md:py-8 px-4">
+      {toastMessage && (
+        <div className="fixed bottom-4 right-2 bg-red-500 p-3 rounded-md z-50 text-white toast toast-exit">
+          {toastMessage}
+        </div>
+      )}
       <div className="absolute flex items-center justify-center">
         <BorrowModal
           closeModal={() => setBorrowModal(null)}
           book={borrowModal}
+          setErrorMessage={setToastMessage}
         />
       </div>
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+        {/* <h1 className="text-2xl font-bold text-gray-800 mb-4 text-center">
           AUBH Mosque Library
-        </h1>
+        </h1> */}
+        <HeroSection />
         <div className="bg-white rounded-lg shadow-sm mb-4 p-3 flex items-center justify-between">
           <div className="text-gray-600">
             Showing {books.length} books of 130
           </div>
           <div className="flex items-center space-x-2">
-            {/* Your existing view toggle buttons */}
+            {/* view toggle buttons */}
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

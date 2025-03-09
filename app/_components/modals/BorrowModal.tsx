@@ -1,7 +1,6 @@
-// BorrowModal.tsx
-import { createClient } from "@/utils/supabase/client";
+import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface Book {
   id: string;
@@ -12,9 +11,14 @@ interface Book {
 interface BorrowModalProps {
   closeModal: () => void;
   book: Book | null;
+  setErrorMessage: (message: string) => void;
 }
 
-const BorrowModal = ({ closeModal, book }: BorrowModalProps) => {
+const BorrowModal = ({
+  closeModal,
+  book,
+  setErrorMessage,
+}: BorrowModalProps) => {
   const router = useRouter();
   useEffect(() => {
     // Prevent scrolling when modal is open
@@ -51,7 +55,7 @@ const BorrowModal = ({ closeModal, book }: BorrowModalProps) => {
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/40 bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black/40 dark:bg-black/60 bg-opacity-50 z-40"
         onClick={closeModal}
         aria-hidden="true"
       />
@@ -61,21 +65,21 @@ const BorrowModal = ({ closeModal, book }: BorrowModalProps) => {
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className="fixed inset-0 z-50 overflow-y-auto"
+        className="fixed inset-0 z-50 overflow-y-auto modal"
       >
         <div className="flex min-h-full items-center justify-center p-4">
-          <div className="relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all w-full max-w-md">
+          <div className="relative transform font-serif overflow-hidden rounded-lg bg-white dark:bg-zinc-800 shadow-xl transition-all w-full max-w-md">
             {/* Content */}
             <div className="p-6">
               <h3
                 id="modal-title"
-                className="text-2xl font-medium leading-6 text-gray-900 mb-2"
+                className="text-2xl font-medium leading-6 text-gray-900 dark:text-zinc-200 mb-2"
               >
                 {book.title}
               </h3>
               <div
                 id="modal-sub-title"
-                className="text-lg font-medium leading-6 text-gray-700 mb-4"
+                className="text-lg font-medium leading-6 text-gray-700 dark:text-zinc-400 mb-4"
               >
                 {book.author}
               </div>
@@ -84,45 +88,37 @@ const BorrowModal = ({ closeModal, book }: BorrowModalProps) => {
                   Code - {book.id}
                 </div>
               </div>
-              <div className="text-zinc-900">
-                You have return the book within{" "}
+              <div className="text-zinc-900 dark:text-zinc-100">
+                You have to return the book within{" "}
                 {new Date(
                   new Date().getTime() + 14 * 24 * 60 * 60 * 1000
                 ).toLocaleDateString()}
               </div>
 
-              {/* <div className="mt-2">
-                <p className="text-sm text-gray-600">
-                  Are you sure you want to borrow "{book.title}" by{" "}
-                  {book.author}?
-                </p>
-              </div> */}
-
-              <div className="mt-6 flex gap-4">
+              <div className="mt-6 flex gap-4 font-sans">
                 <button
                   type="button"
                   className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   onClick={async () => {
-                    const supabase = createClient();
                     const userToken = localStorage.getItem("user-token");
                     if (userToken) {
                       const userData: { id: number } = JSON.parse(userToken);
-
-                      const { data, error } = await supabase
-                        .from("BorrowedBooks")
-                        .insert([
-                          {
+                      try {
+                        const data = await axios.post("/api/borrow", {
+                          body: JSON.stringify({
                             user_id: userData.id,
                             book_id: book.id,
-                            returned: false,
-                          },
-                        ])
-                        .select();
-                      if (error) {
-                        console.log(error);
+                          }),
+                        });
+                        console.log(data);
+                        if (data) closeModal();
+                      } catch (error: any) {
+                        setErrorMessage(error.response.data);
+                        closeModal();
+                        setTimeout(() => {
+                          setErrorMessage("");
+                        }, 3000);
                       }
-                      //TODO:Change the availibity status of the book
-                      if (data) closeModal();
                     } else {
                       router.push("/login");
                     }
