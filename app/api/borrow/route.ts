@@ -1,6 +1,5 @@
 import { currentProfile } from "@/lib/currentProfile";
 import { createClient } from "@/utils/supabase/client";
-import { error } from "console";
 import { NextResponse } from "next/server";
 
 //In the request I have to pass userid, bookid

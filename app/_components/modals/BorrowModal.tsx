@@ -1,6 +1,7 @@
+import { useModalData } from "@/lib/hooks/useModalData";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 interface Book {
   id: string;
@@ -8,18 +9,13 @@ interface Book {
   author: string;
 }
 
-interface BorrowModalProps {
-  closeModal: () => void;
-  book: Book | null;
-  setErrorMessage: (message: string) => void;
-}
-
-const BorrowModal = ({
-  closeModal,
-  book,
-  setErrorMessage,
-}: BorrowModalProps) => {
+const BorrowModal = () => {
   const router = useRouter();
+  const {
+    setConfirmBorrowModal,
+    setToastMessage,
+    confirmBorrowModal: book,
+  } = useModalData();
   useEffect(() => {
     // Prevent scrolling when modal is open
     if (book) {
@@ -38,7 +34,7 @@ const BorrowModal = ({
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        closeModal();
+        setConfirmBorrowModal(null);
       }
     };
 
@@ -47,7 +43,7 @@ const BorrowModal = ({
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
-  }, [closeModal]);
+  }, [setConfirmBorrowModal]);
 
   if (!book) return null;
 
@@ -56,7 +52,7 @@ const BorrowModal = ({
       {/* Overlay */}
       <div
         className="fixed inset-0 bg-black/40 dark:bg-black/60 bg-opacity-50 z-40"
-        onClick={closeModal}
+        onClick={() => setConfirmBorrowModal(null)}
         aria-hidden="true"
       />
 
@@ -88,6 +84,7 @@ const BorrowModal = ({
                   Code - {book.id}
                 </div>
               </div>
+
               <div className="text-zinc-900 dark:text-zinc-100">
                 You have to return the book within{" "}
                 {new Date(
@@ -110,13 +107,12 @@ const BorrowModal = ({
                             book_id: book.id,
                           }),
                         });
-                        console.log(data);
-                        if (data) closeModal();
+                        if (data) setConfirmBorrowModal(null);
                       } catch (error: any) {
-                        setErrorMessage(error.response.data);
-                        closeModal();
+                        setToastMessage(error.response.data);
+                        setConfirmBorrowModal(null);
                         setTimeout(() => {
-                          setErrorMessage("");
+                          setToastMessage("");
                         }, 3000);
                       }
                     } else {
@@ -129,7 +125,7 @@ const BorrowModal = ({
                 <button
                   type="button"
                   className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  onClick={closeModal}
+                  onClick={() => setConfirmBorrowModal(null)}
                 >
                   Cancel
                 </button>

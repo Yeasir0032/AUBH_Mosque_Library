@@ -1,16 +1,13 @@
 "use client";
-interface Book {
-  id: string;
-  title: string;
-  author: string;
-  available: boolean;
-}
+
+import { useModalData } from "@/lib/hooks/useModalData";
+
 interface props {
   book: Book;
-  handleBorrow: (book: Book) => void;
 }
 
-const BookCard1 = ({ book, handleBorrow }: props) => {
+const BookCard1 = ({ book }: props) => {
+  const { setConfirmBorrowModal } = useModalData();
   return (
     <div
       key={book.id}
@@ -29,7 +26,7 @@ const BookCard1 = ({ book, handleBorrow }: props) => {
           Code - {book.id}
         </span>
         <button
-          onClick={() => handleBorrow(book)}
+          onClick={() => setConfirmBorrowModal(book)}
           disabled={!book.available}
           className={`px-4 py-2 rounded-md cursor-pointer text-sm font-medium transition-colors duration-200 
                     ${
