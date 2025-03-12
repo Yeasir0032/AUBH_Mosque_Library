@@ -1,5 +1,5 @@
 "use client";
-import { createClient } from "@/utils/supabase/client";
+import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -45,7 +45,7 @@ const SignUpPage = () => {
       setError("Please enter a valid phone number");
       return false;
     }
-    const roomNumberRegex = /^(0?[1-9]|1[0-9])-(0?[1-9]|1[0-7])$/;
+    const roomNumberRegex = /^(0?[1-9]|1[0-9])-(0?[1-9]|1[0-8])$/;
     if (!roomNumberRegex.test(formData.roomNumber)) {
       setError("Please enter a valid room number");
       return false;
@@ -59,28 +59,44 @@ const SignUpPage = () => {
       setError("Please select a department");
       return false;
     }
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("Users")
-      .insert([
-        {
+    try {
+      const data = await axios.post("/api/auth/signup", {
+        body: JSON.stringify({
           name: formData.name,
-          mobile: formData.phoneNumber,
-          room_number: formData.roomNumber,
+          phoneNumber: formData.phoneNumber,
+          roomNumber: formData.roomNumber,
           department: formData.department,
-        },
-      ])
-      .select();
-    if (error) {
-      setError(error.message);
-      return false;
-    }
-    if (data) {
-      localStorage.setItem("user-token", JSON.stringify(data[0]));
-      //Add a route
+        }),
+      });
+      // if (data)
+      //FIXME: Check the data has no errors
       router.push("/");
-      return true;
+    } catch (error) {
+      console.log(error);
     }
+    // const supabase = createClient();
+    // const { data, error } = await supabase
+    //   .from("Users")
+    //   .insert([
+    //     {
+    //       name: formData.name,
+    //       mobile: formData.phoneNumber,
+    //       room_number: formData.roomNumber,
+    //       department: formData.department,
+    //     },
+    //   ])
+    //   .select();
+    // if (error) {
+    //   setError(error.message);
+    //   return false;
+    // }
+    // if (data) {
+    //   // cookies().set("")
+    //   localStorage.setItem("user-token", JSON.stringify(data[0]));
+    //   //Add a route
+    //   router.push("/");
+    //   return true;
+    // }
   };
 
   const handleSignUpSubmit = async (e: React.FormEvent) => {

@@ -19,6 +19,8 @@ const BorrowCodeModal = () => {
   useEffect(() => {
     // Prevent scrolling when modal is open
     if (codeBorrowModal) {
+      setBook(null);
+      setBookCode("");
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -92,9 +94,13 @@ const BorrowCodeModal = () => {
                   <button
                     className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                     onClick={async () => {
-                      const url = `/api/fetchbook/${bookCode}`;
-                      const { data }: { data: Book } = await axios.get(url);
-                      setBook(data);
+                      try {
+                        const url = `/api/fetchbook/${bookCode}`;
+                        const { data }: { data: Book } = await axios.get(url);
+                        setBook(data);
+                      } catch (error: any) {
+                        setToastMessage(error.response.data);
+                      }
                     }}
                   >
                     Search

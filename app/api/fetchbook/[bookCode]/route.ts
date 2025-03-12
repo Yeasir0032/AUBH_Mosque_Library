@@ -12,11 +12,11 @@ export async function GET(
     const { data, error } = await supabase
       .from("Books")
       .select("*")
-      .eq("id", bookCode)
-      .single();
+      .eq("id", bookCode);
     if (error) return new NextResponse(error.message, { status: 400 });
-    if (!data) return new NextResponse("Book not found", { status: 400 });
-    return NextResponse.json(data);
+    if (!data.length)
+      return new NextResponse("Book not found", { status: 404 });
+    return NextResponse.json(data[0]);
   } catch (error) {
     return new NextResponse("API error", { status: 500 });
   }

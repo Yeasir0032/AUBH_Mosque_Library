@@ -1,12 +1,17 @@
 import { currentProfile } from "@/lib/currentProfile";
 import { createClient } from "@/utils/supabase/client";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 //In the request I have to pass userid, bookid
 export async function POST(req: Request) {
   try {
     const { body } = await req.json();
-    const { user_id, book_id } = JSON.parse(body);
+    const { book_id } = JSON.parse(body);
+    const cookieStore = await cookies();
+    const userToken = cookieStore.get("authToken");
+    if (!userToken) return new NextResponse("Unauthorized", { status: 401 });
+    const user_id = JSON.parse(userToken.value).id;
     const userData = await currentProfile(user_id);
 
     if (!userData) return new NextResponse("Unauthorized", { status: 401 });

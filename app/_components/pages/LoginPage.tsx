@@ -1,5 +1,6 @@
 "use client";
 import { createClient } from "@/utils/supabase/client";
+import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,17 +19,18 @@ const LoginPage = () => {
       setError("Please enter a valid phone number");
       return;
     }
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("Users")
-      .select("*")
-      .eq("mobile", phoneNumber);
-    if (error) setError(error.message);
-    if (data?.length) {
-      localStorage.setItem("user-token", JSON.stringify(data[0]));
-      router.push("/");
-    } else {
-      setError("No data found for this mobile number");
+    try {
+      const data = await axios.put("/api/auth/login", {
+        body: JSON.stringify({
+          mobile: phoneNumber,
+        }),
+      });
+      //FIXME:Check in data no errors
+      if (data) {
+        router.push("/");
+      }
+    } catch (error: any) {
+      console.log(error.message);
     }
   };
 
