@@ -7,6 +7,7 @@ import HeroSection from "./Hero";
 import LoadingSection from "../pages/loading";
 import { useModalData } from "@/lib/hooks/useModalData";
 import BorrowCodeModal from "../modals/BorrowCodeModal";
+import LoadingOverlay from "./loading";
 const LibraryExplorePage = () => {
   const [books, setBooks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +15,7 @@ const LibraryExplorePage = () => {
   const [page, setPage] = useState(0);
   const booksPerPage = 10;
 
-  const { toastMessage, setConfirmBorrowModal } = useModalData();
+  const { toastMessage, loading: UILoading } = useModalData();
 
   const fetchBooks = async () => {
     try {
@@ -50,11 +51,20 @@ const LibraryExplorePage = () => {
 
   return (
     <div className="mt-13 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:bg-gradient-to-br dark:from-gray-900 dark:to-black py-4 md:py-8 px-4">
-      {toastMessage && (
-        <div className="fixed bottom-4 right-2 bg-red-500 p-3 rounded-md z-50 text-white toast toast-exit">
-          {toastMessage}
+      {toastMessage.message && (
+        <div
+          className={`fixed bottom-4 right-2 ${
+            toastMessage.type == "Error"
+              ? "bg-red-500"
+              : toastMessage.type == "Success"
+              ? "bg-green-500"
+              : "bg-amber-500"
+          } p-3 rounded-md z-50 text-white toast toast-exit`}
+        >
+          {toastMessage.message}
         </div>
       )}
+      {UILoading && <LoadingOverlay />}
       <div className="absolute flex items-center justify-center">
         <BorrowModal />
         <BorrowCodeModal />

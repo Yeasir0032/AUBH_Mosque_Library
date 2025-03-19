@@ -15,6 +15,7 @@ const BorrowModal = () => {
     setConfirmBorrowModal,
     setToastMessage,
     confirmBorrowModal: book,
+    setLoading,
   } = useModalData();
   useEffect(() => {
     // Prevent scrolling when modal is open
@@ -51,7 +52,7 @@ const BorrowModal = () => {
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/40 dark:bg-black/60 bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black/40 dark:bg-black/60 bg-opacity-50 z-10"
         onClick={() => setConfirmBorrowModal(null)}
         aria-hidden="true"
       />
@@ -61,7 +62,7 @@ const BorrowModal = () => {
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className="fixed inset-0 z-50 overflow-y-auto modal"
+        className="fixed inset-0 z-20 overflow-y-auto modal"
       >
         <div className="flex min-h-full items-center justify-center p-4">
           <div className="relative transform font-serif overflow-hidden rounded-lg bg-white dark:bg-zinc-800 shadow-xl transition-all w-full max-w-md">
@@ -97,21 +98,33 @@ const BorrowModal = () => {
                   type="button"
                   className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   onClick={async () => {
+                    setLoading(true);
                     try {
                       const data = await axios.post("/api/borrow", {
                         body: JSON.stringify({
                           book_id: book.id,
                         }),
                       });
-                      if (data) setConfirmBorrowModal(null);
+                      if (data) {
+                        setLoading(false);
+                        setToastMessage(
+                          "Book borrowed successfully",
+                          "Success"
+                        );
+                        setConfirmBorrowModal(null);
+                        setTimeout(() => {
+                          setToastMessage("", "Null");
+                        }, 3000);
+                      }
                     } catch (error: any) {
+                      setLoading(false);
                       if (error.status == 401) {
                         router.push("/login");
                       }
-                      setToastMessage(error.response.data);
+                      setToastMessage(error.response.data, "Error");
                       setConfirmBorrowModal(null);
                       setTimeout(() => {
-                        setToastMessage("");
+                        setToastMessage("", "Null");
                       }, 3000);
                     }
                   }}

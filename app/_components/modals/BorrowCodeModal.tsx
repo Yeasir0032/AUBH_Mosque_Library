@@ -14,7 +14,7 @@ const BorrowCodeModal = () => {
   const router = useRouter();
   const [bookCode, setBookCode] = useState("");
   const [book, setBook] = useState<Book | null>(null);
-  const { setCodeBorrowModal, setToastMessage, codeBorrowModal } =
+  const { setCodeBorrowModal, setToastMessage, codeBorrowModal, setLoading } =
     useModalData();
   useEffect(() => {
     // Prevent scrolling when modal is open
@@ -53,7 +53,7 @@ const BorrowCodeModal = () => {
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/40 dark:bg-black/60 bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black/40 dark:bg-black/60 bg-opacity-50 z-10"
         onClick={() => setCodeBorrowModal(false)}
         aria-hidden="true"
       />
@@ -63,7 +63,7 @@ const BorrowCodeModal = () => {
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className="fixed inset-0 z-50 overflow-y-auto modal"
+        className="fixed inset-0 z-20 overflow-y-auto modal"
       >
         <div className="flex min-h-full items-center justify-center p-4">
           <div className="relative transform font-sans overflow-hidden rounded-lg bg-white dark:bg-zinc-800 shadow-xl transition-all w-full max-w-md">
@@ -94,12 +94,19 @@ const BorrowCodeModal = () => {
                   <button
                     className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                     onClick={async () => {
+                      if (bookCode == "") {
+                        setToastMessage("Please enter a code", "Error");
+                        return;
+                      }
+                      setLoading(true);
                       try {
                         const url = `/api/fetchbook/${bookCode}`;
                         const { data }: { data: Book } = await axios.get(url);
                         setBook(data);
+                        setLoading(false);
                       } catch (error: any) {
-                        setToastMessage(error.response.data);
+                        setLoading(false);
+                        setToastMessage(error.response.data, "Error");
                       }
                     }}
                   >
@@ -121,31 +128,30 @@ const BorrowCodeModal = () => {
                         type="button"
                         className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         onClick={async () => {
-                          const userToken = localStorage.getItem("user-token");
-                          if (userToken) {
-                            const userData: { id: number } =
-                              JSON.parse(userToken);
-                            try {
-                              const data = await axios.post("/api/borrow", {
-                                body: JSON.stringify({
-                                  user_id: userData.id,
-                                  book_id: book.id,
-                                }),
-                              });
-                              if (data) {
-                                setCodeBorrowModal(false);
-                                setBook(null);
-                                setBookCode("");
-                              }
-                            } catch (error: any) {
-                              setToastMessage(error.response.data);
+                          setLoading(true);
+                          try {
+                            const data = await axios.post("/api/borrow", {
+                              body: JSON.stringify({
+                                book_id: book.id,
+                              }),
+                            });
+                            if (data) {
                               setCodeBorrowModal(false);
-                              setTimeout(() => {
-                                setToastMessage("");
-                              }, 3000);
+                              setToastMessage(
+                                "Book borrowed successfully",
+                                "Success"
+                              );
+                              setLoading(false);
+                              setBook(null);
+                              setBookCode("");
                             }
-                          } else {
-                            router.push("/login");
+                          } catch (error: any) {
+                            setToastMessage(error.response.data, "Error");
+                            setCodeBorrowModal(false);
+                            setLoading(false);
+                            setTimeout(() => {
+                              setToastMessage("", "Null");
+                            }, 3000);
                           }
                         }}
                       >

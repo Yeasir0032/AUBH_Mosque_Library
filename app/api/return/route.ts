@@ -24,7 +24,8 @@ export async function PATCH(req: Request) {
         .eq("user_id", user_id)
         .eq("book_id", book_id)
         .eq("returned", false);
-    if (borrwedUserError) return new NextResponse("API error", { status: 400 });
+    if (borrwedUserError)
+      return new NextResponse("API error 1", { status: 400 });
     if (!BorrowedUserDetails.length) {
       return new NextResponse("You have not borrowed the book", {
         status: 400,
@@ -37,15 +38,17 @@ export async function PATCH(req: Request) {
       .update({ returned: true, returned_at: new Date().toISOString() })
       .eq("user_id", user_id)
       .eq("book_id", book_id)
+      .eq("returned", false)
       .select()
       .single();
-    if (bookError) return new NextResponse("API error", { status: 400 });
+    if (bookError) return new NextResponse("API error 2", { status: 400 });
+
     //Change the availaibity of the book
     const { data: book2, error: bookError2 } = await supabase
       .from("Books")
       .update({ available: true })
       .eq("id", book_id);
-    if (bookError2) return new NextResponse("API error", { status: 400 });
+    if (bookError2) return new NextResponse("API error 3", { status: 400 });
     return NextResponse.json(book);
   } catch (error: any) {
     return new NextResponse(error.message, { status: 500 });

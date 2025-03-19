@@ -1,8 +1,10 @@
 import { useModalData } from "@/lib/hooks/useModalData";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 const HeroSection = () => {
   const { setCodeBorrowModal } = useModalData();
+  const router = useRouter();
   return (
     <section className="min-h-[25vh] rounded-md  mb-2 flex flex-col justify-center items-center text-center p-4 md:p-8 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-zinc-100">
       <blockquote className="text-xl md:text-3xl italic mb-8 max-w-3xl">
@@ -18,7 +20,7 @@ const HeroSection = () => {
         </button>
         <button
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition duration-300 cursor-pointer"
-          onClick={() => {}}
+          onClick={() => router.push("/dashboard")}
         >
           Return a book
         </button>

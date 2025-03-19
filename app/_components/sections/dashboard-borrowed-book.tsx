@@ -3,6 +3,9 @@ import { useModalData } from "@/lib/hooks/useModalData";
 import ChevronDown from "@/lib/icons/chevron-down";
 import axios from "axios";
 import React, { useState } from "react";
+import ReturnConfirmationModal from "../modals/return-confirmation-modal";
+import LoadingOverlay from "./loading";
+import { getReturnDate } from "@/utils/utils";
 
 interface props {
   books: Book;
@@ -10,12 +13,26 @@ interface props {
 }
 const DashboardBorrowedBookSection = ({ books, borrowedDate }: props) => {
   const [toggleDetails, setToggleDetails] = useState(false);
-  const { setToastMessage, toastMessage } = useModalData();
+  const {
+    toastMessage,
+    setReturnConfirmModal,
+    loading: UILoading,
+  } = useModalData();
   return (
     <div className="bg-gray-50 text-gray-700 rounded-lg p-2 md:p-4">
-      {toastMessage && (
-        <div className="fixed bottom-4 right-2 bg-red-500 p-3 rounded-md z-50 text-white toast toast-exit">
-          {toastMessage}
+      <ReturnConfirmationModal />
+      {UILoading && <LoadingOverlay />}
+      {toastMessage.message && (
+        <div
+          className={`fixed bottom-4 right-2 ${
+            toastMessage.type == "Error"
+              ? "bg-red-500"
+              : toastMessage.type == "Success"
+              ? "bg-green-500"
+              : "bg-amber-500"
+          } p-3 rounded-md z-50 text-white toast toast-exit`}
+        >
+          {toastMessage.message}
         </div>
       )}
       <h2 className="text-xl font-semibold mb-1">Borrowed Books</h2>
@@ -49,23 +66,16 @@ const DashboardBorrowedBookSection = ({ books, borrowedDate }: props) => {
               </div>
               <div>
                 <div className="font-bold">
-                  Return Date:{" "}
-                  <span className="text-sm font-medium">{borrowedDate}</span>
+                  Return Date: {/*Add two weeks to the borrowed date  */}
+                  <span className="text-sm font-medium">
+                    {getReturnDate(borrowedDate)}
+                  </span>
                 </div>
               </div>
               <button
                 className="inline-flex mt-4 ml-auto justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 onClick={async () => {
-                  try {
-                    const data = await axios.patch("/api/return", {
-                      book_id: books.id,
-                    });
-                  } catch (error: any) {
-                    setToastMessage(error.response.data);
-                    setTimeout(() => {
-                      setToastMessage("");
-                    }, 3000);
-                  }
+                  setReturnConfirmModal(books);
                 }}
               >
                 Return
