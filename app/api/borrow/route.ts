@@ -20,7 +20,11 @@ export async function POST(req: Request) {
     //check if the user has already borrowed the book
     const supabase = createClient();
     const { data: BorrowedUserDetails, error: borrwedUserError } =
-      await supabase.from("BorrowedBooks").select("*").eq("user_id", user_id);
+      await supabase
+        .from("BorrowedBooks")
+        .select("id")
+        .eq("user_id", user_id)
+        .eq("returned", false);
     if (borrwedUserError) return new NextResponse("API error", { status: 400 });
     if (BorrowedUserDetails.length) {
       return new NextResponse("You have already borrowed a book", {

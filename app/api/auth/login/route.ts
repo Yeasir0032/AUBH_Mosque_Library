@@ -16,10 +16,11 @@ export async function PUT(req: Request) {
     if (!data) {
       return new NextResponse("User not found", { status: 400 });
     }
+    console.log(data);
     const cookieStore = await cookies();
     cookieStore.set("authToken", JSON.stringify(data), {
       httpOnly: true,
-      secure: true,
+      secure: false, //FIXME: Change it to secure
       path: "/",
       maxAge: 60 * 60 * 24 * 100,
     });

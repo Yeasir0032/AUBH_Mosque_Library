@@ -17,7 +17,8 @@ export async function POST(req: Request) {
           department: department,
         },
       ])
-      .select();
+      .select()
+      .single();
     if (error) return new NextResponse(error.message, { status: 400 });
     const cookieStore = await cookies();
     cookieStore.set("authToken", JSON.stringify(data), {

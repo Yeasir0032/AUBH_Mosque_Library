@@ -1,9 +1,18 @@
+"use client";
+import { useRouter } from "next/navigation";
+
 const Navbar = () => {
+  const router = useRouter();
   return (
     <nav className="fixed top-0 w-full bg-[#4caf50] z-30 px-4 py-3 max-h-13 min-h-13">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center">
-          <h1 className="text-xl font-semibold text-gray-800">AUBH Mosque</h1>
+          <h1
+            className="text-xl font-semibold text-gray-800 cursor-pointer"
+            onClick={() => router.push("/")}
+          >
+            AUBH Mosque
+          </h1>
         </div>
 
         {/* Actions Section */}
@@ -30,6 +39,7 @@ const Navbar = () => {
           <button
             className="cursor-pointer rounded-full"
             aria-label="User menu"
+            onClick={() => router.push("/dashboard")}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

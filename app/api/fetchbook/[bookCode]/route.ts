@@ -1,10 +1,7 @@
 import { createClient } from "@/utils/supabase/client";
 import { NextResponse } from "next/server";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { bookCode: number } }
-) {
+export async function GET(req: Request, { params }: any) {
   try {
     const { bookCode } = await params;
     if (!bookCode) return new NextResponse("BAD Request", { status: 400 });

@@ -1,10 +1,15 @@
 import { currentProfile } from "@/lib/currentProfile";
 import { createClient } from "@/utils/supabase/client";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function PATCH(req: Request) {
   try {
-    const { user_id, book_id } = await req.json();
+    const { book_id } = await req.json();
+    const cookieStore = await cookies();
+    const userToken = cookieStore.get("authToken");
+    if (!userToken) return new NextResponse("Unauthorized", { status: 401 });
+    const user_id = JSON.parse(userToken.value).id;
     const userData = await currentProfile(user_id);
 
     if (!userData) return new NextResponse("Unauthorized", { status: 401 });
