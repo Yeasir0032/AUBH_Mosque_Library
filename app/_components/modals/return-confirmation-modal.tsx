@@ -39,10 +39,11 @@ const ReturnConfirmationModal = () => {
   }, [setReturnConfirmModal]);
 
   if (!book) return null;
+  
   return (
-    <div>
+    <div className="relative z-50">
       <div
-        className="fixed inset-0 bg-black/40 dark:bg-black/60 bg-opacity-50 z-10"
+        className="fixed inset-0 bg-zinc-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={() => setReturnConfirmModal(null)}
         aria-hidden="true"
       />
@@ -50,41 +51,49 @@ const ReturnConfirmationModal = () => {
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className="fixed inset-0 z-20 overflow-y-auto modal"
+        className="fixed inset-0 overflow-y-auto pointer-events-none"
       >
-        <div className="flex min-h-full items-center justify-center p-4">
-          <div className="relative transform font-sans overflow-hidden rounded-lg bg-white dark:bg-zinc-800 shadow-xl transition-all w-full max-w-md">
+        <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+          <div className="relative transform font-sans overflow-hidden rounded-2xl bg-white dark:bg-zinc-800 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md pointer-events-auto border border-zinc-100 dark:border-zinc-700/50">
             {/* Content */}
-            <div className="p-6">
-              <h3
-                id="modal-title"
-                className="text-xl font-medium leading-6 text-gray-900 dark:text-zinc-200 mb-2"
-              >
-                Are you sure you want to return this book?
-              </h3>
-              <div className="py-2">
+            <div className="p-6 sm:p-8">
+              
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 mb-5">
+                <svg className="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 15l-3 3m0 0l-3-3m3 3V9m0-6a9 9 0 110 18 9 9 0 010-18z" />
+                </svg>
+              </div>
+
+              <div className="text-center mb-6">
                 <h3
                   id="modal-title"
-                  className="text-2xl font-medium font-serif leading-6 text-gray-900 dark:text-zinc-200 mb-2"
+                  className="text-xl font-bold leading-6 text-gray-900 dark:text-zinc-100 mb-2"
                 >
-                  {book.title}
+                  Return Book
                 </h3>
-                <div
-                  id="modal-sub-title"
-                  className="text-md font-serif font-medium leading-6 text-gray-700 dark:text-zinc-400 mb-4"
-                >
-                  {book.author}
+                <p className="text-sm text-gray-500 dark:text-zinc-400">
+                  Are you sure you want to return this book to the library?
+                </p>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-zinc-900/50 p-4 rounded-xl border border-gray-100 dark:border-zinc-700/50 mb-8 border-l-4 border-l-blue-500">
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-zinc-200 mb-1 leading-tight">
+                  {book.title}
+                </h4>
+                <div className="text-sm font-medium text-gray-600 dark:text-zinc-400 mb-3">
+                  By {book.author}
                 </div>
-                <div className="text-md rounded-md mr-auto font-[400] leading-6 bg-green-200 w-fit p-1 text-green-700">
-                  Code - {book.id}
+                <div className="text-xs font-mono font-medium rounded-md bg-white dark:bg-zinc-800 px-2.5 py-1 text-gray-500 dark:text-zinc-400 border border-gray-200 dark:border-zinc-700/80 inline-block">
+                  Code: {book.id}
                 </div>
               </div>
-              {/* Input field */}
-              <div className="flex justify-end mb-2">
+
+              {/* Actions */}
+              <div className="flex gap-3 justify-center sm:flex-row-reverse">
                 <button
                   type="button"
                   title="Return book"
-                  className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="inline-flex w-full sm:w-auto justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all active:scale-95"
                   onClick={async () => {
                     setLoading(true);
                     try {
@@ -98,7 +107,7 @@ const ReturnConfirmationModal = () => {
                         setToastMessage("", "Null");
                       }, 3000);
                     } catch (error: any) {
-                      setToastMessage(error.response.data, "Error");
+                      setToastMessage(error?.response?.data || "An error occurred", "Error");
                       setLoading(false);
                       setReturnConfirmModal(null);
                       setTimeout(() => {
@@ -107,11 +116,11 @@ const ReturnConfirmationModal = () => {
                     }
                   }}
                 >
-                  Confirm
+                  Confirm Return
                 </button>
                 <button
                   type="button"
-                  className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors ml-2"
+                  className="inline-flex w-full sm:w-auto justify-center rounded-xl bg-white dark:bg-zinc-800 px-5 py-2.5 text-sm font-semibold text-gray-900 dark:text-zinc-300 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-zinc-600 hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-all active:scale-95 mt-3 sm:mt-0"
                   onClick={() => setReturnConfirmModal(null)}
                 >
                   Cancel

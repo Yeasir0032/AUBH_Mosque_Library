@@ -49,6 +49,13 @@ export async function PATCH(req: Request) {
       .update({ available: true })
       .eq("id", book_id);
     if (bookError2) return new NextResponse("API error 3", { status: 400 });
+
+    // Step 3: Create System Log
+    await supabase.from("Logs").insert({
+      action: "Book Returned",
+      details: `User ID ${user_id} returned Book ID ${book_id}`,
+    });
+
     return NextResponse.json(book);
   } catch (error: any) {
     return new NextResponse(error.message, { status: 500 });

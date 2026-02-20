@@ -20,17 +20,20 @@ const LoginPage = () => {
       return;
     }
     try {
-      const data = await axios.put("/api/auth/login", {
+      const { data } = await axios.put("/api/auth/login", {
         body: JSON.stringify({
           mobile: phoneNumber,
         }),
       });
-      //FIXME:Check in data no errors
       if (data) {
-        router.push("/");
+        if (data.role === 'admin') {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
       }
     } catch (error: any) {
-      console.log(error.message);
+      setError(error.response?.data || error.message);
     }
   };
 
