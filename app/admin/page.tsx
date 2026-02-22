@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/client";
+import { db } from "@/utils/firebase/admin";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
@@ -15,12 +15,15 @@ export default async function AdminDashboardPage() {
     redirect("/");
   }
 
-  const supabase = await createClient();
+  // Fetch basic overview stats using Firebase Admin SDK count aggregations
+  const booksCountSnapshot = await db.collection("Books").count().get();
+  const booksCount = booksCountSnapshot.data().count;
 
-  // Fetch basic overview stats
-  const { count: booksCount } = await supabase.from("Books").select("*", { count: "exact", head: true });
-  const { count: borrowedCount } = await supabase.from("BorrowedBooks").select("*", { count: "exact", head: true }).eq("returned", false);
-  const { count: usersCount } = await supabase.from("Users").select("*", { count: "exact", head: true });
+  const borrowedCountSnapshot = await db.collection("BorrowedBooks").where("returned", "==", false).count().get();
+  const borrowedCount = borrowedCountSnapshot.data().count;
+
+  const usersCountSnapshot = await db.collection("Users").count().get();
+  const usersCount = usersCountSnapshot.data().count;
 
 
   return (
@@ -34,36 +37,36 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Books Metric */}
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800 transition-colors">
           <div className="flex justify-between items-start mb-4">
-            <div className="bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400 p-3 rounded-xl">
+            <div className="bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400 p-3 rounded-xl transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
             </div>
           </div>
-          <h3 className="text-gray-500 dark:text-zinc-400 text-sm font-medium">Total Books</h3>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{booksCount || 0}</p>
+          <h3 className="text-gray-500 dark:text-zinc-400 text-sm font-medium transition-colors">Total Books</h3>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1 transition-colors">{booksCount || 0}</p>
         </div>
 
         {/* Borrowed Metric */}
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800 transition-colors">
           <div className="flex justify-between items-start mb-4">
-            <div className="bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400 p-3 rounded-xl">
+            <div className="bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400 p-3 rounded-xl transition-colors">
                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
           </div>
-          <h3 className="text-gray-500 dark:text-zinc-400 text-sm font-medium">Active Borrows</h3>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{borrowedCount || 0}</p>
+          <h3 className="text-gray-500 dark:text-zinc-400 text-sm font-medium transition-colors">Active Borrows</h3>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1 transition-colors">{borrowedCount || 0}</p>
         </div>
 
         {/* Users Metric */}
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800 transition-colors">
           <div className="flex justify-between items-start mb-4">
-            <div className="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400 p-3 rounded-xl">
+            <div className="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400 p-3 rounded-xl transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
             </div>
           </div>
-          <h3 className="text-gray-500 dark:text-zinc-400 text-sm font-medium">Registered Users</h3>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{usersCount || 0}</p>
+          <h3 className="text-gray-500 dark:text-zinc-400 text-sm font-medium transition-colors">Registered Users</h3>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1 transition-colors">{usersCount || 0}</p>
         </div>
 
       </div>

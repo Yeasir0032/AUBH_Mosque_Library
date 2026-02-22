@@ -8,7 +8,7 @@ export default function AdminNoticesPage() {
   const [globalMessage, setGlobalMessage] = useState("");
   const [globalType, setGlobalType] = useState("info");
 
-  const [personalMobile, setPersonalMobile] = useState("");
+  const [personalEmail, setPersonalEmail] = useState("");
   const [personalTitle, setPersonalTitle] = useState("");
   const [personalMessage, setPersonalMessage] = useState("");
 
@@ -36,15 +36,15 @@ export default function AdminNoticesPage() {
     setLoadingPersonal(true);
     setFeedback(null);
     try {
-      // 1. Resolve user mobile to ID
-      const { data: userData } = await axios.get(`/api/admin/resolve-user?mobile=${personalMobile}`);
+      // 1. Resolve user email to ID
+      const { data: userData } = await axios.get(`/api/admin/resolve-user?email=${personalEmail}`);
       if (!userData?.id) throw new Error("User not found");
 
       // 2. Send distinct notification
       await axios.post("/api/admin/notices/personal", { userId: userData.id, title: personalTitle, message: personalMessage });
       
       setFeedback({ type: "success", text: `Personal notification sent successfully to ${userData.name}.` });
-      setPersonalMobile(""); setPersonalTitle(""); setPersonalMessage("");
+      setPersonalEmail(""); setPersonalTitle(""); setPersonalMessage("");
     } catch (err: any) {
       setFeedback({ type: "error", text: err.response?.data?.error || err.message || "Failed to send notification." });
     } finally {
@@ -120,15 +120,15 @@ export default function AdminNoticesPage() {
               <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
               Direct Message
             </h2>
-            <p className="text-sm text-gray-500 mt-1">Send a direct dashboard notification to a specific user via their mobile number.</p>
+            <p className="text-sm text-gray-500 mt-1">Send a direct dashboard notification to a specific user via their email address.</p>
           </div>
           
           <form onSubmit={handlePersonalSubmit} className="space-y-4">
              <div>
-               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Target User Mobile</label>
+               <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Target User Email</label>
                <input 
-                 required type="tel"
-                 value={personalMobile} onChange={(e) => setPersonalMobile(e.target.value)}
+                 required type="email"
+                 value={personalEmail} onChange={(e) => setPersonalEmail(e.target.value)}
                  className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-emerald-500 text-gray-900 dark:text-white outline-none transition-all"
                />
              </div>

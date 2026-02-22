@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/client";
+import { db } from "@/utils/firebase/admin";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
@@ -18,14 +18,13 @@ export async function GET(req: Request) {
   if (!(await isAdmin())) return new NextResponse("Unauthorized", { status: 401 });
 
   try {
-    const supabase = await createClient();
-    const { data: logs, error } = await supabase
-      .from("Logs")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(100); // Last 100 Logs
-
-    if (error) throw error;
+    const logsRef = db.collection("Logs");
+    const snapshot = await logsRef
+      .orderBy("created_at", "desc")
+      .limit(100)
+      .get();
+      
+    const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     
     return NextResponse.json(logs);
   } catch (error: any) {
@@ -37,11 +36,20 @@ export async function DELETE(req: Request) {
   if (!(await isAdmin())) return new NextResponse("Unauthorized", { status: 401 });
 
   try {
-    const supabase = await createClient();
-    // This removes all rows in the Logs table
-    const { error } = await supabase.from("Logs").delete().neq("id", -1);
+    const logsRef = db.collection("Logs");
+    const snapshot = await logsRef.get();
     
-    if (error) throw error;
+    if (snapshot.size === 0) {
+      return NextResponse.json({ success: true, message: "Logs cleared successfully" });
+    }
+
+    // Delete documents in batches (batch max limit is 500)
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    
+    await batch.commit();
     
     return NextResponse.json({ success: true, message: "Logs cleared successfully" });
   } catch (error: any) {

@@ -1,19 +1,18 @@
-import { createClient } from "@/utils/supabase/client";
+import { db } from "@/utils/firebase/admin";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request, { params }: any) {
   try {
     const { bookCode } = await params;
     if (!bookCode) return new NextResponse("BAD Request", { status: 400 });
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("Books")
-      .select("*")
-      .eq("id", bookCode);
-    if (error) return new NextResponse(error.message, { status: 400 });
-    if (!data.length)
+    
+    const bookDoc = await db.collection("Books").doc(bookCode).get();
+    
+    if (!bookDoc.exists) {
       return new NextResponse("Book not found", { status: 404 });
-    return NextResponse.json(data[0]);
+    }
+    
+    return NextResponse.json({ id: bookDoc.id, ...bookDoc.data() });
   } catch (error) {
     return new NextResponse("API error", { status: 500 });
   }

@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/client";
+import { db } from "@/utils/firebase/admin";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
@@ -24,19 +24,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const noticesRef = db.collection("Notices");
 
-    // Inactivate any old notices first to ensure only 1 active notice at a time (optional strategy)
-    await supabase.from("Notices").update({ is_active: false }).eq("is_active", true);
+    // Inactivate any old notices first
+    const activeNotices = await noticesRef.where("is_active", "==", true).get();
+    
+    const batch = db.batch();
+    activeNotices.docs.forEach((doc) => {
+      batch.update(doc.ref, { is_active: false });
+    });
 
-    const { error } = await supabase.from("Notices").insert({
+    const newNoticeRef = noticesRef.doc();
+    batch.set(newNoticeRef, {
       title,
       message,
       type,
-      is_active: true
+      is_active: true,
+      created_at: new Date().toISOString()
     });
 
-    if (error) throw error;
+    await batch.commit();
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

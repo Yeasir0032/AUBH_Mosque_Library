@@ -1,32 +1,60 @@
-import { createClient } from "@/utils/supabase/client";
+import { db } from "@/utils/firebase/admin";
 import Link from "next/link";
 
 export default async function AdminBooksPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const searchParams = await props.searchParams;
-  const supabase = await createClient();
   
-  // Basic pagination and search structure pulling from URL params inline with server components
   const page = searchParams?.page && typeof searchParams.page === 'string' ? parseInt(searchParams.page) : 0;
-  const limit = 20;
-  const searchQuery = searchParams?.search && typeof searchParams.search === 'string' ? searchParams.search : "";
+  const limitCount = 20;
+  const searchQuery = searchParams?.search && typeof searchParams.search === 'string' ? searchParams.search.toLowerCase() : "";
 
-  let baseQuery = supabase
-    .from("Books")
-    .select("*", { count: "exact" });
-    
-  if (searchQuery) {
-    baseQuery = baseQuery.or(`title.ilike.%${searchQuery}%,author.ilike.%${searchQuery}%,id.eq.${!isNaN(Number(searchQuery)) ? searchQuery : -1}`);
-  }
+  let books = [];
+  let totalCount = 0;
 
-  const { data: books, count, error } = await baseQuery
-    .order("id", { ascending: true })
-    .range(page * limit, (page + 1) * limit - 1);
+  try {
+    const booksRef = db.collection("Books");
 
-  if (error) {
+    if (searchQuery) {
+       // Since Firestore doesn't support generic substring search via simple queries,
+       // and this is a dashboard context, we'll fetch all and filter in memory if searching,
+       // or use basic range queries if performance becomes an issue. Given this is a small library
+       // app, memory filtering on title works best to mimic Supabase's ilike without using Algolia.
+       const allBooksSnapshot = await booksRef.orderBy("id", "asc").get();
+       const allDocs = allBooksSnapshot.docs;
+       
+       const filteredDocs = allDocs.filter(doc => {
+         const data = doc.data();
+         return (data.title?.toLowerCase().includes(searchQuery)) || 
+                (data.author?.toLowerCase().includes(searchQuery)) ||
+                (data.id?.toString() === searchQuery);
+       });
+       
+       totalCount = filteredDocs.length;
+       books = filteredDocs.slice(page * limitCount, (page + 1) * limitCount).map(doc => ({ id: doc.id, ...doc.data() }));
+
+    } else {
+       // Normal paginated request
+       const countSnapshot = await booksRef.count().get();
+       totalCount = countSnapshot.data().count;
+
+       const snapshot = await booksRef
+         .orderBy("id", "asc")
+         .offset(page * limitCount)
+         .limit(limitCount)
+         .get();
+       
+       books = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+
+  } catch (error) {
+    console.log(error);
     return <div className="p-8 text-center text-red-600 bg-red-50 rounded-xl">Error loading books.</div>;
   }
+
+  const count = totalCount;
+  const limit = limitCount;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in py-4">

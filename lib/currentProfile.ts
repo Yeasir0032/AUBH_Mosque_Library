@@ -1,24 +1,18 @@
-import { createClient } from "@/utils/supabase/client";
+import { db } from "@/utils/firebase/admin";
 
 /**
- * Fetches the current user's profile data from the Supabase "Users" table.
+ * Fetches the current user's profile data from the Firestore "Users" collection.
  * 
  * @param userid - The ID of the user to fetch.
  * @returns The user's profile data if found, otherwise null.
  */
 export const currentProfile = async (userid: number) => {
-  const supabase = createClient();
-  
-  // Query the "Users" table for the specified user ID
-  const { data, error } = await supabase
-    .from("Users")
-    .select()
-    .eq("id", userid)
-    .single();
+  // Query the "Users" collection for the specified user ID
+  const snapshot = await db.collection("Users").where("id", "==", userid).limit(1).get();
     
-  // If there's an error during fetch, return null
-  if (error) return null;
-  
   // Return the user data if successful
-  if (data) return data;
+  if (!snapshot.empty) return snapshot.docs[0].data();
+
+  // If there's an error during fetch, return null
+  return null;
 };

@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/client";
+import { db } from "@/utils/firebase/admin";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
@@ -24,16 +24,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const notificationsRef = db.collection("Notifications");
 
-    const { error } = await supabase.from("Notifications").insert({
+    await notificationsRef.add({
       user_id: userId,
       title,
       message,
-      read: false
+      read: false,
+      created_at: new Date().toISOString()
     });
-
-    if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

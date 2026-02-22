@@ -1,5 +1,5 @@
 import { currentProfile } from "@/lib/currentProfile";
-import { createClient } from "@/utils/supabase/client";
+import { db } from "@/utils/firebase/admin";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -15,48 +15,53 @@ export async function PATCH(req: Request) {
     if (!userData) return new NextResponse("Unauthorized", { status: 401 });
     if (!book_id) return new NextResponse("Missing bookid", { status: 400 });
 
-    const supabase = createClient();
-    //Check if the book is being borrowed by the user and still not returned
-    const { data: BorrowedUserDetails, error: borrwedUserError } =
-      await supabase
-        .from("BorrowedBooks")
-        .select("*")
-        .eq("user_id", user_id)
-        .eq("book_id", book_id)
-        .eq("returned", false);
-    if (borrwedUserError)
-      return new NextResponse("API error 1", { status: 400 });
-    if (!BorrowedUserDetails.length) {
-      return new NextResponse("You have not borrowed the book", {
-        status: 400,
-      });
+    const borrowedBooksRef = db.collection("BorrowedBooks");
+    const booksRef = db.collection("Books");
+    const logsRef = db.collection("Logs");
+
+    // Check if the book is being borrowed by the user and still not returned
+    const borrowedUserSnapshot = await borrowedBooksRef
+        .where("user_id", "==", user_id)
+        .where("book_id", "==", book_id)
+        .where("returned", "==", false)
+        .limit(1)
+        .get();
+
+    if (borrowedUserSnapshot.empty) {
+      return new NextResponse("You have not borrowed the book", { status: 400 });
     }
-    //Change the returned state of the book and update the reutrned-at value
 
-    const { data: book, error: bookError } = await supabase
-      .from("BorrowedBooks")
-      .update({ returned: true, returned_at: new Date().toISOString() })
-      .eq("user_id", user_id)
-      .eq("book_id", book_id)
-      .eq("returned", false)
-      .select()
-      .single();
-    if (bookError) return new NextResponse("API error 2", { status: 400 });
+    const borrowedDocRef = borrowedUserSnapshot.docs[0].ref;
+    const bookDocRef = booksRef.doc(book_id.toString());
+    
+    let returnedBookData = null;
 
-    //Change the availaibity of the book
-    const { data: book2, error: bookError2 } = await supabase
-      .from("Books")
-      .update({ available: true })
-      .eq("id", book_id);
-    if (bookError2) return new NextResponse("API error 3", { status: 400 });
+    // Transaction to safely update both docs
+    await db.runTransaction(async (transaction) => {
+      // Change the returned state of the book and update the returned-at value
+      returnedBookData = { 
+        ...borrowedUserSnapshot.docs[0].data(),
+        returned: true, 
+        returned_at: new Date().toISOString() 
+      };
+      transaction.update(borrowedDocRef, { 
+        returned: true, 
+        returned_at: new Date().toISOString() 
+      });
 
-    // Step 3: Create System Log
-    await supabase.from("Logs").insert({
-      action: "Book Returned",
-      details: `User ID ${user_id} returned Book ID ${book_id}`,
+      // Change the availability of the book
+      transaction.update(bookDocRef, { available: true });
+
+      // Create System Log
+      const logRef = logsRef.doc();
+      transaction.set(logRef, {
+        action: "Book Returned",
+        details: `User ID ${user_id} returned Book ID ${book_id}`,
+        created_at: new Date().toISOString()
+      });
     });
 
-    return NextResponse.json(book);
+    return NextResponse.json(returnedBookData);
   } catch (error: any) {
     return new NextResponse(error.message, { status: 500 });
   }

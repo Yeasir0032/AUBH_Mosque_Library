@@ -1,5 +1,3 @@
-import { createClient } from "@/utils/supabase/client";
-import { Database, Tables } from "@/utils/supabase/supabase-types";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import DashboardBorrowedBookSection from "../_components/sections/dashboard-borrowed-book";
@@ -13,8 +11,7 @@ const UserDashboard = async () => {
     if (!userToken) {
       redirect("/login");
     } else {
-      const userData: Database["public"]["Tables"]["Users"]["Row"] =
-        JSON.parse(userToken);
+      const userData = JSON.parse(userToken);
       return userData;
     }
   };
@@ -24,25 +21,34 @@ const UserDashboard = async () => {
   }
 
   const fetchBorrowedBooks = async (user_id: number) => {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("BorrowedBooks")
-      .select("borrowed_at,Books(*)")
-      .eq("user_id", user_id)
-      .eq("returned", false)
-      .single();
-    if (error) return null;
-    return data;
+    const { db } = await import("@/utils/firebase/admin");
+    const snapshot = await db.collection("BorrowedBooks")
+      .where("user_id", "==", user_id)
+      .where("returned", "==", false)
+      .limit(1)
+      .get();
+      
+    if (snapshot.empty) return null;
+    
+    const borrowData = snapshot.docs[0].data();
+    const bookDoc = await db.collection("Books").doc(borrowData.book_id.toString()).get();
+    
+    if (bookDoc.exists) {
+      borrowData.Books = bookDoc.data();
+    }
+    
+    return borrowData;
   };
+  
   const fetchNotifications = async (user_id: number) => {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("Notifications")
-      .select("*")
-      .eq("user_id", user_id)
-      .order("created_at", { ascending: false });
-    if (error) return null;
-    return data;
+    const { db } = await import("@/utils/firebase/admin");
+    const snapshot = await db.collection("Notifications")
+      .where("user_id", "==", user_id)
+      .orderBy("created_at", "desc")
+      .get();
+      
+    if (snapshot.empty) return null;
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   };
   
   const booksBorrowed = await fetchBorrowedBooks(user.id);

@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/client";
+import { db } from "@/utils/firebase/admin";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import BookBorrowButton from "@/app/_components/sections/BookBorrowButton";
@@ -19,18 +19,13 @@ export default async function BookDetailPage({ params }: any) {
     notFound();
   }
 
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("Books")
-    .select("*")
-    .eq("id", bookCode)
-    .single();
+  const bookDoc = await db.collection("Books").doc(bookCode).get();
 
-  if (error || !data) {
+  if (!bookDoc.exists) {
     notFound();
   }
 
-  const book: Book = data;
+  const book: Book = { id: bookDoc.id, ...bookDoc.data() } as Book;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-900 pb-12 pt-24 px-4">
