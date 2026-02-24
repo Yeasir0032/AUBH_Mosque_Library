@@ -1,16 +1,12 @@
-import AdminSidebar from "../_components/sections/AdminSidebar";
+import AdminLayoutWrapper from "./AdminLayoutWrapper";
+
+// Ensure Next.js does not statically cache any admin page, guaranteeing fresh data on Vercel
+export const dynamic = "force-dynamic";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex pt-16">
-      <AdminSidebar />
-      <main className="flex-1 w-full p-4 md:p-8 overflow-y-auto">
-        {children}
-      </main>
-    </div>
-  );
+  return <AdminLayoutWrapper>{children}</AdminLayoutWrapper>;
 }

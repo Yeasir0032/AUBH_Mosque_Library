@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import DashboardBorrowedBookSection from "../_components/sections/dashboard-borrowed-book";
 import LogoutButton from "../_components/ui/LogoutButton";
+import UserNavbar from "../_components/sections/navbar";
 
 const UserDashboard = async () => {
   const fetchUserData = async () => {
@@ -55,9 +56,11 @@ const UserDashboard = async () => {
   const notifications = await fetchNotifications(user.id);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-900 pb-12 pt-24 px-4 overflow-hidden">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+    <>
+      <UserNavbar />
+      <div className="min-h-screen bg-slate-50 dark:bg-zinc-900 pb-12 pt-24 px-4 overflow-hidden">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white leading-tight">
               Welcome back, <span className="text-blue-600 dark:text-blue-400">{user.name}</span>
@@ -111,7 +114,8 @@ const UserDashboard = async () => {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

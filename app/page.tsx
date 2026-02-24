@@ -1,9 +1,10 @@
 import LibraryExplorePage from "./_components/sections/LibraryExplorePage";
-import Navbar from "./_components/sections/navbar";
+import UserNavbar from "./_components/sections/navbar";
 
 export default function Home() {
   return (
-    <div>
+    <div className="min-h-screen">
+      <UserNavbar />
       <LibraryExplorePage />
     </div>
   );

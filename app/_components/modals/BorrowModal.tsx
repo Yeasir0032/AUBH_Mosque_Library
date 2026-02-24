@@ -51,7 +51,7 @@ const BorrowModal = () => {
   if (!book) return null;
 
   return (
-    <div className="relative z-50">
+    <div className="relative z-40">
       {/* Overlay */}
       <div
         className="fixed inset-0 bg-zinc-900/40 dark:bg-black/60 backdrop-blur-sm transition-opacity"

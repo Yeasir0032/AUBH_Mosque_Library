@@ -1,5 +1,4 @@
 "use client";
-import AdminSidebar from "@/app/_components/sections/AdminSidebar";
 import axios from "axios";
 import { useState } from "react";
 
@@ -45,9 +44,8 @@ const AdminSettingsPage = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <AdminSidebar />
-      <div className="flex-1 p-8 overflow-y-auto w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-2xl mx-auto space-y-8 animate-in fade-in py-4">
+      <div>
         <h1 className="text-3xl font-bold mb-6 text-gray-800">Settings</h1>
         
         <div className="bg-white rounded-lg shadow-md p-6">

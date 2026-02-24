@@ -17,7 +17,7 @@ export default function AdminSidebar() {
   ];
 
   return (
-    <div className="w-64 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 h-[calc(100vh-64px)] overflow-y-auto flex-shrink-0 flex flex-col pt-6 hidden md:flex sticky top-16 z-10 transition-colors">
+    <div className="flex flex-col h-full w-full bg-white dark:bg-zinc-900 pt-6 transition-colors overflow-y-auto">
        <div className="px-6 mb-8">
         <h2 className="text-xs font-semibold text-gray-400 dark:text-zinc-500 uppercase tracking-wider">
           Admin Controls
